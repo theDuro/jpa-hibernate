@@ -1,14 +1,12 @@
 package pl.nullpointerexception.hibernate.entity;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Entity
 public class Product {
@@ -20,9 +18,45 @@ public class Product {
     private LocalDateTime created;
     private LocalDateTime updated;
     private BigDecimal price;
+    @OneToMany(mappedBy = "product",cascade = {CascadeType.REMOVE,CascadeType.PERSIST})
+    private List<Review> reviews = new ArrayList<>();
     @Enumerated(EnumType.STRING)
     @Column(name = "type")
     private ProductType productType;
+    @ManyToOne (fetch = FetchType.LAZY)
+    private Category category;
+
+    public Set<Attribute> getAttributes() {
+        return attributes;
+    }
+
+    public void setAttributes(Set<Attribute> attributes) {
+        this.attributes = attributes;
+    }
+
+    @ManyToMany(cascade = CascadeType.PERSIST)
+    @JoinTable(joinColumns = {@JoinColumn(name = "product_id")},
+            inverseJoinColumns = {@JoinColumn(name = "attribute_id")}
+    )
+    private Set<Attribute> attributes = new HashSet<>();
+    public void addAtribute(Attribute attribute){
+        attributes.add(attribute);
+        attribute.getProducts().add(this);///
+    }
+
+    public void addReview(Review review){
+        reviews.add(review);
+        review.setProduct(this);
+    }
+
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
+    }
 
     public Long getId() {
         return id;
@@ -43,6 +77,7 @@ public class Product {
     public LocalDateTime getUpdated() {
         return updated;
     }
+
 
     public BigDecimal getPrice() {
         return price;
@@ -92,4 +127,13 @@ public class Product {
                 ", productType=" + productType +
                 '}';
     }
+
+    public List<Review> getReviews() {
+        return reviews;
+    }
+
+    public void setReviews(List<Review> reviews) {
+        this.reviews = reviews;
+    }
+
 }
